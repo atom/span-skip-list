@@ -11,19 +11,31 @@ describe "SpanSkipList", ->
 
   buildRandomElements = ->
     elements = []
-    times random(10), -> elements.push(buildRandomElement())
+    times 10, -> elements.push(buildRandomElement())
     elements
 
-  spliceRandomElements = (realList, referenceList) ->
-    index = random(0, referenceList.getLength('elements'))
-    count = random(0, Math.floor((referenceList.getLength('elements') - index) / 2))
+  spliceRandomElements = (lists...) ->
+    length = lists[0].getLength('elements')
+    index = random(0, length)
+    count = random(0, Math.floor((length - index - 1) / 2))
     elements = buildRandomElements()
     dimension = getRandomDimension()
-    realList.spliceArray(dimension, index, count, elements)
-    referenceList.spliceArray(dimension, index, count, elements)
+    for list in lists
+      list.spliceArray(dimension, index, count, elements)
 
   getRandomDimension = ->
     dimensions[random(dimensions.length - 1)]
+
+  fit "can insert some stuff", ->
+    realList = new SpanSkipList(dimensions...)
+
+    times 10, ->
+      spliceRandomElements(realList)
+
+    realList.verifyDistanceInvariant()
+
+    for node in realList.getNodes()
+      console.log "#{node.height}: #{node.distance.join(', ')}"
 
   describe "::totalTo", ->
     it "returns total for all dimensions up to a target total in one dimension", ->
@@ -31,14 +43,21 @@ describe "SpanSkipList", ->
         realList = new SpanSkipList(dimensions...)
         referenceList = new ReferenceSpanSkipList(dimensions...)
         times 20, -> spliceRandomElements(realList, referenceList)
-        times 10, ->
-          targetDimension = getRandomDimension()
-          console.log targetDimension
-          targetTotal = random(0, referenceList.getLength(targetDimension))
 
-          referenceTotal = referenceList.totalTo(targetTotal, targetDimension)
-          realTotal = realList.totalTo(targetTotal, targetDimension)
 
-          console.log realTotal
+        # console.log realList.getElements()
 
-          expect(realTotal).toEqual referenceTotal
+        # times 10, ->
+          # targetDimension = getRandomDimension()
+          # console.log targetDimension
+          # targetTotal = random(0, referenceList.getLength(targetDimension))
+
+
+
+
+          # referenceTotal = referenceList.totalTo(targetTotal, targetDimension)
+          # realTotal = realList.totalTo(targetTotal, targetDimension)
+          #
+          # console.log realTotal
+          #
+          # expect(realTotal).toEqual referenceTotal
