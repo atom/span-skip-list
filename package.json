@@ -16,7 +16,12 @@
     "index"
   ],
   "author": "Nathan Sobo",
-  "license": "MIT",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://github.com/atom/span-skip-list/raw/master/LICENSE.md"
+    }
+  ],
   "bugs": {
     "url": "https://github.com/atom/span-skip-list/issues"
   },
