@@ -1,0 +1,29 @@
+{
+  "name": "span-skip-list",
+  "version": "0.0.0",
+  "description": "A data structure for calculating running totals in multiple dimensions in O(ln(n)).",
+  "main": "src/span-skip-list.coffee",
+  "scripts": {
+    "test": "jasmine-focused --coffee spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/atom/span-skip-list.git"
+  },
+  "keywords": [
+    "skip-list",
+    "data-structure",
+    "index"
+  ],
+  "author": "Nathan Sobo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/atom/span-skip-list/issues"
+  },
+  "dependencies": {
+    "underscore": "~1.5.1"
+  },
+  "devDependencies": {
+    "jasmine-focused": "~0.12.0"
+  }
+}
