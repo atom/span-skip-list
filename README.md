@@ -16,7 +16,9 @@ you've traversed up to a certain number of x's. For example, when you've
 traversed up to 8 in the x dimension your total in the y dimension is 5. Here's
 an example of how you'd use the span skip list to answer that query:
 
-```coffee-script
+```coffeescript
+SpanSkipList = require 'span-skip-list'
+
 # construct with the dimensions you want to track
 list = new SpanSkipList('x', 'y')
 
