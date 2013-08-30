@@ -11,9 +11,9 @@ describe "SpanSkipList", ->
     y: random(10)
     z: random(10)
 
-  buildRandomElements = ->
+  buildRandomElements = (count=random(10)) ->
     elements = []
-    times random(10), -> elements.push(buildRandomElement())
+    times count, -> elements.push(buildRandomElement())
     elements
 
   spliceRandomElements = (lists...) ->
@@ -27,13 +27,6 @@ describe "SpanSkipList", ->
 
   getRandomDimension = ->
     dimensions[random(dimensions.length - 1)]
-
-  it "can insert some stuff", ->
-    times 10, ->
-      list = new SpanSkipList(dimensions...)
-      times 10, ->
-        spliceRandomElements(list)
-        list.verifyDistanceInvariant()
 
   describe "::totalTo", ->
     it "returns total for all dimensions up to a target total in one dimension", ->
@@ -52,3 +45,17 @@ describe "SpanSkipList", ->
           referenceTotal = referenceList.totalTo(target, dimension)
           realTotal = list.totalTo(target, dimension)
           expect(realTotal).toEqual referenceTotal
+
+  describe "::splice(dimension, index, count, elements...)", ->
+    it "maintains the distance invariant when removing / inserting elements", ->
+      times 10, ->
+        list = new SpanSkipList(dimensions...)
+        times 10, ->
+          spliceRandomElements(list)
+          list.verifyDistanceInvariant()
+
+    it "returns an array of removed elements", ->
+      list = new SpanSkipList(dimensions...)
+      elements = buildRandomElements(10)
+      list.spliceArray('elements', 0, 0, elements)
+      expect(list.splice('elements', 3, 2)).toEqual elements[3..4]
