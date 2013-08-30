@@ -13,7 +13,7 @@ describe "SpanSkipList", ->
 
   buildRandomElements = ->
     elements = []
-    times 5, -> elements.push(buildRandomElement())
+    times random(10), -> elements.push(buildRandomElement())
     elements
 
   spliceRandomElements = (lists...) ->
@@ -28,28 +28,12 @@ describe "SpanSkipList", ->
   getRandomDimension = ->
     dimensions[random(dimensions.length - 1)]
 
-  fit "can insert some stuff", ->
-    realList = new SpanSkipList(dimensions...)
-
+  it "can insert some stuff", ->
     times 10, ->
-      # length = realList.getLength('elements')
-      # index = random(0, length)
-      # elements = buildRandomElements()
-      # console.log '--------------------'
-      # # console.log "splicing #{element.id} at", index
-      # console.log realList.inspect()
-      # console.log "--------------------"
-      # realList.splice('elements', index, 0, elements...)
-      # console.log realList.inspect()
-      # console.log '--------------------'
-      #
-      # index = random(0, length)
-      # realList.splice('elements', index, 1)
-
-      spliceRandomElements(realList)
-      realList.verifyDistanceInvariant()
-
-
+      list = new SpanSkipList(dimensions...)
+      times 10, ->
+        spliceRandomElements(list)
+        list.verifyDistanceInvariant()
 
   describe "::totalTo", ->
     it "returns total for all dimensions up to a target total in one dimension", ->
