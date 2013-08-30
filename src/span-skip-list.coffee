@@ -65,7 +65,7 @@ class SpanSkipList
     # Remove count nodes and decrement totals for updated pointers
     removedElements = []
 
-    while count > 0
+    while count > 0 and nextNode isnt @tail
       removedElements.push(nextNode.element)
       nextNode = @removeNode(nextNode, previous, previousDistances)
       count--

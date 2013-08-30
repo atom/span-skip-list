@@ -59,3 +59,9 @@ describe "SpanSkipList", ->
       elements = buildRandomElements(10)
       list.spliceArray('elements', 0, 0, elements)
       expect(list.splice('elements', 3, 2)).toEqual elements[3..4]
+
+    it "does not attempt to remove beyond the end of the list", ->
+      list = new SpanSkipList(dimensions...)
+      elements = buildRandomElements(10)
+      list.spliceArray('elements', 0, 0, elements)
+      expect(list.splice('elements', 9, 3)).toEqual elements[9..9]
