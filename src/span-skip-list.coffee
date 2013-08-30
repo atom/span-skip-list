@@ -1,4 +1,4 @@
-{random} = require 'underscore'
+{random, clone, isEqual} = require 'underscore'
 
 module.exports =
 class SpanSkipList
@@ -6,12 +6,11 @@ class SpanSkipList
   probability: .5
 
   constructor: (@dimensions...) ->
-    @head = new Node(@maxHeight, id: 'H')
-    @tail = new Node(@maxHeight, id: 'T')
+    @head = new Node(@maxHeight, @buildZeroDistance())
+    @tail = new Node(@maxHeight, @buildZeroDistance())
     for i in [0...@maxHeight]
       @head.next[i] = @tail
-      @head.distance[i] = 1
-      @tail.distance[i] = 0
+      @head.distance[i] = @buildZeroDistance()
 
   # totalTo: (targetTotal, targetDimension) ->
   #   total = @buildZeroDistance()
@@ -23,14 +22,14 @@ class SpanSkipList
   #     i++
   #   total
 
-  splice: (targetDimension, targetIndex, count, elements...) ->
-    @spliceArray(targetDimension, targetIndex, count, elements)
+  splice: (dimension, index, count, elements...) ->
+    @spliceArray(dimension, index, count, elements)
 
-  spliceArray: (targetDimension, targetIndex, count, elements) ->
+  spliceArray: (dimension, index, count, elements) ->
     previous = @buildPreviousArray()
     previousDistances = @buildPreviousDistancesArray()
 
-    nextNode = @findClosestNode(targetDimension, targetIndex, previous, previousDistances)
+    nextNode = @findClosestNode(dimension, index, previous, previousDistances)
 
     # Remove count nodes and decrement totals for updated pointers
     while count > 0
@@ -40,7 +39,8 @@ class SpanSkipList
     # Insert new nodes and increment totals for updated pointers
     i = elements.length - 1
     while i >= 0
-      newNode = new Node(@getRandomNodeHeight(), elements[i])
+      element = elements[i]
+      newNode = new Node(@getRandomNodeHeight(), element)
       @insertNode(newNode, previous, previousDistances)
       i--
 
@@ -61,25 +61,25 @@ class SpanSkipList
   removeNode: (node, previous) ->
     for level in [0...node.height]
       previous[level].next[level] = node.next[level]
-      previous[level].distance[level] += node.distance[level]
+      @incrementDistance(previous[level].distance[level], node.distance[level])
 
     for level in [node.height...@maxHeight]
-      previous[level].distance[level] -= node.width
+      @decrementDistance(previous[level].distance[level], node.element)
 
     node.next[0]
 
   insertNode: (node, previous, previousDistances) ->
-    coveredDistance = 0
+    coveredDistance = @buildZeroDistance()
 
     for level in [0...node.height]
       node.next[level] = previous[level].next[level]
       previous[level].next[level] = node
-      node.distance[level] = previous[level].distance[level] - coveredDistance
-      previous[level].distance[level] = coveredDistance
-      coveredDistance += previousDistances[level]
+      node.distance[level] = @subtractDistances(previous[level].distance[level], coveredDistance)
+      previous[level].distance[level] = clone(coveredDistance)
+      @incrementDistance(coveredDistance, previousDistances[level])
 
     for level in [node.height...@maxHeight]
-      previous[level].distance[level] += node.width
+      @incrementDistance(previous[level].distance[level], node.element)
 
     @verifyDistanceInvariant()
 
@@ -91,27 +91,24 @@ class SpanSkipList
   #
   # Returns the leftmost node whose running total in the target dimension
   # exceeds the target index
-  findClosestNode: (targetDimension, index, previous, previousDistances) ->
-    totalDistance = 0
+  findClosestNode: (dimension, index, previous, previousDistances) ->
+    totalDistance = @buildZeroDistance()
     node = @head
-
-    console.log "searching index", index
-
     for i in [@maxHeight - 1..0]
       # Move forward as far as possible while keeping the running total in the
       # target dimension less than or equal to the target index.
       loop
         break if node.next[i] is @tail
-        nextHopDistance = node.next[i].width + node.distance[i]
-        break if totalDistance + nextHopDistance > index
-        totalDistance += nextHopDistance
-        previousDistances[i] += nextHopDistance
+        @incrementDistance(totalDistance, node.distance[i])
+        @incrementDistance(totalDistance, node.next[i].element)
+        break if totalDistance[dimension] > index
+        @incrementDistance(previousDistances[i], node.distance[i])
+        @incrementDistance(previousDistances[i], node.next[i].element)
         node = node.next[i]
 
       # Record the last node visited at the current level before dropping to the
       # next level.
-      previous?[i] = node
-
+      previous[i] = node
     node.next[0]
 
   # Private
@@ -122,7 +119,7 @@ class SpanSkipList
 
   buildPreviousDistancesArray: ->
     distances = new Array(@maxHeight)
-    distances[i] = 0 for i in [0...@maxHeight]
+    distances[i] = @buildZeroDistance() for i in [0...@maxHeight]
     distances
 
   # Private: Returns a height between 1 and maxHeight (inclusive). Taller heights
@@ -139,21 +136,21 @@ class SpanSkipList
     distance
 
   incrementDistance: (distance, delta) ->
-    distance.elements++
+    distance.elements += delta.elements ? 1
     distance[dimension] += delta[dimension] for dimension in @dimensions
 
   decrementDistance: (distance, delta) ->
-    distance.elements--
+    distance.elements -= delta.elements ? 1
     distance[dimension] -= delta[dimension] for dimension in @dimensions
 
-  addDistances: -> (a, b) ->
-    distance = {}
+  addDistances: (a, b) ->
+    distance = {elements: (a.elements ? 1) + (b.elements ? 1)}
     for dimension in @dimensions
       distance[dimension] = a[dimension] + b[dimension]
     distance
 
-  subtractDistances: -> (a, b) ->
-    distance = {}
+  subtractDistances: (a, b) ->
+    distance = {elements: (a.elements ? 1) - (b.elements ? 1)}
     for dimension in @dimensions
       distance[dimension] = a[dimension] - b[dimension]
     distance
@@ -162,18 +159,19 @@ class SpanSkipList
     for level in [@maxHeight - 1..1]
       node = @head
       while node isnt @tail
-        distanceOnThisLevel = node.width + node.distance[level]
+        distanceOnThisLevel = @addDistances(node.element, node.distance[level])
         distanceOnPreviousLevel = @distanceBetweenNodesAtLevel(node, node.next[level], level - 1)
-        if distanceOnThisLevel isnt distanceOnPreviousLevel
+        unless isEqual(distanceOnThisLevel, distanceOnPreviousLevel)
           console.log @inspect()
-          throw new Error("On level #{level}: Distance #{distanceOnThisLevel} does not match #{distanceOnPreviousLevel}")
+          throw new Error("On level #{level}: Distance #{JSON.stringify(distanceOnThisLevel)} does not match #{JSON.stringify(distanceOnPreviousLevel)}")
         node = node.next[level]
 
   distanceBetweenNodesAtLevel: (startNode, endNode, level) ->
-    distance = 0
+    distance = @buildZeroDistance()
     node = startNode
     while node isnt endNode
-      distance += node.width + node.distance[level]
+      @incrementDistance(distance, node.element)
+      @incrementDistance(distance, node.distance[level])
       node = node.next[level]
     distance
 
@@ -181,7 +179,7 @@ class SpanSkipList
     lines = []
     node = @head
     while node isnt @tail
-      lines.push "#{node.element.id} - #{node.width}: #{node.distance.join(', ')}"
+      lines.push "#{JSON.stringify(node.element)} : #{node.distance.join(', ')}"
       node = node.next[0]
     lines.join('\n')
 
@@ -189,4 +187,3 @@ class Node
   constructor: (@height, @element) ->
     @next = new Array(@height)
     @distance = new Array(@height)
-    @width = @element.width ? 0

@@ -7,10 +7,9 @@ counter = 1
 describe "SpanSkipList", ->
   dimensions = ['foos', 'bars', 'bazs']
   buildRandomElement = ->
-    {id: counter++, width: random(1, 4)}
-    # foos: random(10)
-    # bars: random(10)
-    # bazs: random(10)
+    foos: random(10)
+    bars: random(10)
+    bazs: random(10)
 
   buildRandomElements = ->
     elements = []
@@ -33,16 +32,19 @@ describe "SpanSkipList", ->
     realList = new SpanSkipList(dimensions...)
 
     times 10, ->
-      length = realList.getLength('elements')
-      index = random(0, length)
+      # length = realList.getLength('elements')
+      # index = random(0, length)
       # elements = buildRandomElements()
       # console.log '--------------------'
-      # console.log "splicing #{element.id} at", index
+      # # console.log "splicing #{element.id} at", index
       # console.log realList.inspect()
       # console.log "--------------------"
       # realList.splice('elements', index, 0, elements...)
       # console.log realList.inspect()
       # console.log '--------------------'
+      #
+      # index = random(0, length)
+      # realList.splice('elements', index, 1)
 
       spliceRandomElements(realList)
       realList.verifyDistanceInvariant()
