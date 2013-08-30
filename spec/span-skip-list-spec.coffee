@@ -2,16 +2,19 @@
 SpanSkipList = require '../src/span-skip-list'
 ReferenceSpanSkipList = require './reference-span-skip-list'
 
+counter = 1
+
 describe "SpanSkipList", ->
   dimensions = ['foos', 'bars', 'bazs']
   buildRandomElement = ->
-    foos: random(10)
-    bars: random(10)
-    bazs: random(10)
+    {id: counter++, width: random(1, 4)}
+    # foos: random(10)
+    # bars: random(10)
+    # bazs: random(10)
 
   buildRandomElements = ->
     elements = []
-    times 10, -> elements.push(buildRandomElement())
+    times 5, -> elements.push(buildRandomElement())
     elements
 
   spliceRandomElements = (lists...) ->
@@ -30,12 +33,21 @@ describe "SpanSkipList", ->
     realList = new SpanSkipList(dimensions...)
 
     times 10, ->
+      length = realList.getLength('elements')
+      index = random(0, length)
+      # elements = buildRandomElements()
+      # console.log '--------------------'
+      # console.log "splicing #{element.id} at", index
+      # console.log realList.inspect()
+      # console.log "--------------------"
+      # realList.splice('elements', index, 0, elements...)
+      # console.log realList.inspect()
+      # console.log '--------------------'
+
       spliceRandomElements(realList)
+      realList.verifyDistanceInvariant()
 
-    realList.verifyDistanceInvariant()
 
-    for node in realList.getNodes()
-      console.log "#{node.height}: #{node.distance.join(', ')}"
 
   describe "::totalTo", ->
     it "returns total for all dimensions up to a target total in one dimension", ->

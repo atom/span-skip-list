@@ -1,11 +1,13 @@
+{random} = require 'underscore'
+
 module.exports =
 class SpanSkipList
   maxHeight: 8
   probability: .5
 
   constructor: (@dimensions...) ->
-    @head = new Node(@maxHeight, -Infinity)
-    @tail = new Node(@maxHeight, Infinity)
+    @head = new Node(@maxHeight, id: 'H')
+    @tail = new Node(@maxHeight, id: 'T')
     for i in [0...@maxHeight]
       @head.next[i] = @tail
       @head.distance[i] = 1
@@ -49,9 +51,9 @@ class SpanSkipList
     @getNodes().map (node) -> node.element
 
   getNodes: ->
-    nodes = [@head]
+    nodes = []
     node = @head
-    while node isnt @tail
+    while node.next[0] isnt @tail
       nodes.push(node.next[0])
       node = node.next[0]
     nodes
@@ -59,24 +61,27 @@ class SpanSkipList
   removeNode: (node, previous) ->
     for level in [0...node.height]
       previous[level].next[level] = node.next[level]
-      previous[level].distance[level] += node.distance[level] - 1
+      previous[level].distance[level] += node.distance[level]
 
     for level in [node.height...@maxHeight]
-      previous[level].distance[level]--
+      previous[level].distance[level] -= node.width
 
     node.next[0]
 
   insertNode: (node, previous, previousDistances) ->
     coveredDistance = 0
+
     for level in [0...node.height]
       node.next[level] = previous[level].next[level]
       previous[level].next[level] = node
       node.distance[level] = previous[level].distance[level] - coveredDistance
-      previous[level].distance[level] = coveredDistance + 1
+      previous[level].distance[level] = coveredDistance
       coveredDistance += previousDistances[level]
 
     for level in [node.height...@maxHeight]
-      previous[level].distance[level] += 1
+      previous[level].distance[level] += node.width
+
+    @verifyDistanceInvariant()
 
   # Private: Searches the skiplist in a stairstep descent, following the highest
   # path that doesn't overshoot the index.
@@ -89,19 +94,24 @@ class SpanSkipList
   findClosestNode: (targetDimension, index, previous, previousDistances) ->
     totalDistance = 0
     node = @head
+
+    console.log "searching index", index
+
     for i in [@maxHeight - 1..0]
       # Move forward as far as possible while keeping the running total in the
       # target dimension less than or equal to the target index.
       loop
         break if node.next[i] is @tail
-        break if totalDistance + node.distance[i] > index
-        totalDistance += node.distance[i]
-        previousDistances[i] += node.distance[i]
+        nextHopDistance = node.next[i].width + node.distance[i]
+        break if totalDistance + nextHopDistance > index
+        totalDistance += nextHopDistance
+        previousDistances[i] += nextHopDistance
         node = node.next[i]
 
       # Record the last node visited at the current level before dropping to the
       # next level.
       previous?[i] = node
+
     node.next[0]
 
   # Private
@@ -152,9 +162,10 @@ class SpanSkipList
     for level in [@maxHeight - 1..1]
       node = @head
       while node isnt @tail
-        distanceOnThisLevel = node.distance[level]
+        distanceOnThisLevel = node.width + node.distance[level]
         distanceOnPreviousLevel = @distanceBetweenNodesAtLevel(node, node.next[level], level - 1)
         if distanceOnThisLevel isnt distanceOnPreviousLevel
+          console.log @inspect()
           throw new Error("On level #{level}: Distance #{distanceOnThisLevel} does not match #{distanceOnPreviousLevel}")
         node = node.next[level]
 
@@ -162,11 +173,20 @@ class SpanSkipList
     distance = 0
     node = startNode
     while node isnt endNode
-      distance += node.distance[level]
+      distance += node.width + node.distance[level]
       node = node.next[level]
     distance
+
+  inspect: ->
+    lines = []
+    node = @head
+    while node isnt @tail
+      lines.push "#{node.element.id} - #{node.width}: #{node.distance.join(', ')}"
+      node = node.next[0]
+    lines.join('\n')
 
 class Node
   constructor: (@height, @element) ->
     @next = new Array(@height)
     @distance = new Array(@height)
+    @width = @element.width ? 0
