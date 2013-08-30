@@ -2,7 +2,7 @@
   "name": "span-skip-list",
   "version": "0.0.0",
   "description": "A data structure for calculating running totals in multiple dimensions in O(ln(n)).",
-  "main": "src/span-skip-list.coffee",
+  "main": "lib/span-skip-list.js",
   "scripts": {
     "prepublish": "grunt clean lint coffee",
     "test": "grunt test"
