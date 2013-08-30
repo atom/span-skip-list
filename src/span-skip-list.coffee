@@ -3,7 +3,7 @@
 module.exports =
 class SpanSkipList
   maxHeight: 8
-  probability: .5
+  probability: .25
 
   constructor: (@dimensions...) ->
     @head = new Node(@maxHeight, @buildZeroDistance())
@@ -12,15 +12,27 @@ class SpanSkipList
       @head.next[i] = @tail
       @head.distance[i] = @buildZeroDistance()
 
-  # totalTo: (targetTotal, targetDimension) ->
-  #   total = @buildZeroDistance()
-  #   i = 0
-  #   while i < @nodes.length
-  #     current = @nodes[i]
-  #     break if total[targetDimension] + current.distance[targetDimension] > targetTotal
-  #     @incrementDistance(total, current)
-  #     i++
-  #   total
+  totalTo: (target, dimension) ->
+    totalDistance = @buildZeroDistance()
+    node = @head
+
+    for i in [@maxHeight - 1..0]
+      loop
+        break if node.next[i] is @tail
+
+        nextDistanceInTargetDimension =
+          totalDistance[dimension] +
+            node.distance[i][dimension] +
+              (node.next[i].element[dimension] ? 1)
+
+        break if nextDistanceInTargetDimension > target
+
+        @incrementDistance(totalDistance, node.distance[i])
+        @incrementDistance(totalDistance, node.next[i].element)
+
+        node = node.next[i]
+
+    totalDistance
 
   splice: (dimension, index, count, elements...) ->
     @spliceArray(dimension, index, count, elements)
@@ -48,15 +60,12 @@ class SpanSkipList
     @getElements().length
 
   getElements: ->
-    @getNodes().map (node) -> node.element
-
-  getNodes: ->
-    nodes = []
+    elements = []
     node = @head
     while node.next[0] isnt @tail
-      nodes.push(node.next[0])
+      elements.push(node.next[0].element)
       node = node.next[0]
-    nodes
+    elements
 
   removeNode: (node, previous) ->
     for level in [0...node.height]
@@ -81,8 +90,6 @@ class SpanSkipList
     for level in [node.height...@maxHeight]
       @incrementDistance(previous[level].distance[level], node.element)
 
-    @verifyDistanceInvariant()
-
   # Private: Searches the skiplist in a stairstep descent, following the highest
   # path that doesn't overshoot the index.
   #
@@ -99,9 +106,12 @@ class SpanSkipList
       # target dimension less than or equal to the target index.
       loop
         break if node.next[i] is @tail
+
+        nextHopDistance = (node.next[i].element[dimension] ? 1) + node.distance[i][dimension]
+        break if totalDistance[dimension] + nextHopDistance > index
+
         @incrementDistance(totalDistance, node.distance[i])
         @incrementDistance(totalDistance, node.next[i].element)
-        break if totalDistance[dimension] > index
         @incrementDistance(previousDistances[i], node.distance[i])
         @incrementDistance(previousDistances[i], node.next[i].element)
         node = node.next[i]

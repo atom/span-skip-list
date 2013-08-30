@@ -5,11 +5,11 @@ ReferenceSpanSkipList = require './reference-span-skip-list'
 counter = 1
 
 describe "SpanSkipList", ->
-  dimensions = ['foos', 'bars', 'bazs']
+  dimensions = ['x', 'y', 'z']
   buildRandomElement = ->
-    foos: random(10)
-    bars: random(10)
-    bazs: random(10)
+    x: random(10)
+    y: random(10)
+    z: random(10)
 
   buildRandomElements = ->
     elements = []
@@ -21,7 +21,7 @@ describe "SpanSkipList", ->
     index = random(0, length)
     count = random(0, Math.floor((length - index - 1) / 2))
     elements = buildRandomElements()
-    dimension = getRandomDimension()
+    dimension = 'elements' #getRandomDimension()
     for list in lists
       list.spliceArray(dimension, index, count, elements)
 
@@ -37,25 +37,18 @@ describe "SpanSkipList", ->
 
   describe "::totalTo", ->
     it "returns total for all dimensions up to a target total in one dimension", ->
-      times 1, ->
-        realList = new SpanSkipList(dimensions...)
+      times 10, ->
+        list = new SpanSkipList(dimensions...)
         referenceList = new ReferenceSpanSkipList(dimensions...)
-        times 20, -> spliceRandomElements(realList, referenceList)
+        times 20, -> spliceRandomElements(list, referenceList)
 
+        expect(list.getElements()).toEqual referenceList.getElements()
 
-        # console.log realList.getElements()
+        list.verifyDistanceInvariant()
 
-        # times 10, ->
-          # targetDimension = getRandomDimension()
-          # console.log targetDimension
-          # targetTotal = random(0, referenceList.getLength(targetDimension))
-
-
-
-
-          # referenceTotal = referenceList.totalTo(targetTotal, targetDimension)
-          # realTotal = realList.totalTo(targetTotal, targetDimension)
-          #
-          # console.log realTotal
-          #
-          # expect(realTotal).toEqual referenceTotal
+        times 10, ->
+          dimension = getRandomDimension()
+          target = referenceList.getLength(dimension)
+          referenceTotal = referenceList.totalTo(target, dimension)
+          realTotal = list.totalTo(target, dimension)
+          expect(realTotal).toEqual referenceTotal

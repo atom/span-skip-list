@@ -1,3 +1,5 @@
+{clone} = require 'underscore'
+
 # Test-only: This is a simple linear reference implementation of the behavior
 # we want from the real skip-list-based implementation.
 module.exports =
@@ -17,10 +19,12 @@ class ReferenceSpanSkipList
     i = 0
     while i < @nodes.length
       current = @nodes[i]
-      break if total[targetDimension] + current[targetDimension] > targetTotal
+      break if total[targetDimension] + (current[targetDimension] ? 1) > targetTotal
       @incrementTotal(total, current)
       i++
     total
+
+  getElements: -> clone(@nodes)
 
   getLength: (dimension) ->
     @totalTo(Infinity, dimension)[dimension]
