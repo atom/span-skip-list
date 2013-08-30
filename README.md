@@ -1,4 +1,4 @@
-# Span Skip-List
+# Span Skip-List [![Build Status](https://travis-ci.org/atom/span-skip-list.png)](https://travis-ci.org/atom/span-skip-list)
 
 This data structure stores arbitrary mappings between various dimensions and
 allows running totals to be calculated in O(ln(n)), where n is the number of
