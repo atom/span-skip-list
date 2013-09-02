@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Span-skip-list by atom</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Span-skip-list</h1>
+        <p>A data structure for computing running totals in arbitrary dimensions in O(ln(n))</p>
+
+        <p class="view"><a href="https://github.com/atom/span-skip-list">View the Project on GitHub <small>atom/span-skip-list</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/atom/span-skip-list/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/atom/span-skip-list/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/atom/span-skip-list">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a name="span-skip-list-" class="anchor" href="#span-skip-list-"><span class="octicon octicon-link"></span></a>Span Skip-List <a href="https://travis-ci.org/atom/span-skip-list"><img src="https://travis-ci.org/atom/span-skip-list.png" alt="Build Status"></a>
+</h1>
+
+<p>This data structure stores arbitrary mappings between various dimensions and
+allows running totals to be calculated in O(ln(n)), where n is the number of
+table entries. Say you have a table entries like the following:</p>
+
+<table>
+<thead><tr>
+<th>x</th>
+<th>y</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>3</td>
+<td>3</td>
+</tr>
+<tr>
+<td>5</td>
+<td>2</td>
+</tr>
+<tr>
+<td>2</td>
+<td>7</td>
+</tr>
+<tr>
+<td>4</td>
+<td>4</td>
+</tr>
+</tbody>
+</table><p>With this data structure, you can determine how many y's you have traversed when
+you've traversed up to a certain number of x's. For example, when you've
+traversed up to 8 in the x dimension your total in the y dimension is 5. Here's
+an example of how you'd use the span skip list to answer that query:</p>
+
+<div class="highlight"><pre><span class="nv">SpanSkipList = </span><span class="nx">require</span> <span class="s">'span-skip-list'</span>
+
+<span class="c1"># Construct with the dimensions you want to track</span>
+<span class="nv">list = </span><span class="k">new</span> <span class="nx">SpanSkipList</span><span class="p">(</span><span class="s">'x'</span><span class="p">,</span> <span class="s">'y'</span><span class="p">)</span>
+
+<span class="c1"># Populate with entries. Splice takes the dimension in which to interpret the</span>
+<span class="c1"># index as a first argument. More on that later.</span>
+<span class="nv">entries = </span><span class="p">[</span>
+  <span class="p">{</span><span class="nv">x: </span><span class="mi">3</span><span class="p">,</span> <span class="nv">y: </span><span class="mi">3</span><span class="p">}</span>
+  <span class="p">{</span><span class="nv">x: </span><span class="mi">5</span><span class="p">,</span> <span class="nv">y: </span><span class="mi">2</span><span class="p">}</span>
+  <span class="p">{</span><span class="nv">x: </span><span class="mi">2</span><span class="p">,</span> <span class="nv">y: </span><span class="mi">7</span><span class="p">}</span>
+  <span class="p">{</span><span class="nv">x: </span><span class="mi">4</span><span class="p">,</span> <span class="nv">y: </span><span class="mi">4</span><span class="p">}</span>
+<span class="p">]</span>
+<span class="nx">list</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="s">'x'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">entries</span><span class="p">...)</span>
+<span class="nx">list</span><span class="p">.</span><span class="nx">getElements</span><span class="p">()</span> <span class="c1"># =&gt; [{x: 3, y: 3} {x: 5, y: 2} {x: 2, y: 7} {x: 4, y: 4}]</span>
+
+<span class="c1"># Call ::totalTo with a total in one dimension to get a total in all dimensions</span>
+<span class="c1"># up to the element that exceeds the target value in that dimension.</span>
+<span class="nx">list</span><span class="p">.</span><span class="nx">totalTo</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="s">'x'</span><span class="p">)</span> <span class="c1"># =&gt; { x: 8, y: 5 }</span>
+<span class="nx">list</span><span class="p">.</span><span class="nx">totalTo</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="s">'x'</span><span class="p">)</span> <span class="c1"># =&gt; { x: 10, y: 12 }</span>
+
+<span class="c1"># Note that you always get the total exclusive of the exceeding element. In this</span>
+<span class="c1"># case, x = 11 returns the same total as x = 10 because including the next</span>
+<span class="c1"># element ({x: 4, y: 4} would make x = 14, which exceeds x = 11.</span>
+<span class="nx">list</span><span class="p">.</span><span class="nx">totalTo</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="s">'x'</span><span class="p">)</span> <span class="c1"># =&gt; { x: 10, y: 12 }</span>
+
+<span class="c1"># The splice occurs at the index of the first element that exceeds the given</span>
+<span class="c1"># index in the given dimension. In this case, the splice at x = 3 replaces the</span>
+<span class="c1"># element {x: 5, y: 2} with the given element. The ::splice method returns an</span>
+<span class="c1"># array of removed elements, list like Array::splice.</span>
+<span class="nx">list</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="s">'x'</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">{</span><span class="nv">x: </span><span class="mi">7</span><span class="p">,</span> <span class="nv">y: </span><span class="mi">1</span><span class="p">})</span> <span class="c1"># =&gt; [{x: 5, y: 2}]</span>
+<span class="nx">list</span><span class="p">.</span><span class="nx">getElements</span><span class="p">()</span> <span class="c1"># =&gt; [{x: 3, y: 3}, {x: 7, y: 1}, {x: 2, y: 7}, {x: 4, y: 4}]</span>
+
+<span class="c1"># You can splice in any tracked dimension:</span>
+<span class="nx">list</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="s">'y'</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span><span class="nv">x: </span><span class="mi">2</span><span class="p">,</span> <span class="nv">y: </span><span class="mi">2</span><span class="p">})</span>
+<span class="nx">list</span><span class="p">.</span><span class="nx">getElements</span><span class="p">()</span> <span class="c1"># =&gt; [{x: 3, y: 3}, {x: 7, y: 1}, {x: 2, y: 2}, {x: 2, y: 7}, {x: 4, y: 4}]</span>
+
+<span class="c1"># You can also splice and run totals in the special 'elements' dimension, which</span>
+<span class="c1"># counts each element as a unit. This returns the total of the first 3 elements:</span>
+<span class="nx">list</span><span class="p">.</span><span class="nx">totalTo</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s">'elements'</span><span class="p">)</span> <span class="c1"># =&gt; {x: 12, y: 6}</span>
+
+<span class="c1"># And this splices at the given element index:</span>
+<span class="nx">list</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="s">'elements'</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="c1"># =&gt; [{x: 2, y: 2}]</span>
+<span class="nx">list</span><span class="p">.</span><span class="nx">getElements</span><span class="p">()</span> <span class="c1"># =&gt; [{x: 3, y: 3}, {x: 7, y: 1}, {x: 2, y: 7}, {x: 4, y: 4}]</span>
+</pre></div>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/atom">atom</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
