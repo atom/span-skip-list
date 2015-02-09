@@ -16,8 +16,8 @@ class SpanSkipList
   #   A list of strings naming the dimensions to be indexed. Elements should
   #   have numeric-valued properties matching each of the indexed dimensions.
   constructor: (@dimensions...) ->
-    @head = new Node(@maxHeight, @buildZeroDistance())
-    @tail = new Node(@maxHeight, @buildZeroDistance())
+    @head = @createNode(@maxHeight, @buildZeroDistance())
+    @tail = @createNode(@maxHeight, @buildZeroDistance())
     for i in [0...@maxHeight]
       @head.next[i] = @tail
       @head.distance[i] = @buildZeroDistance()
@@ -79,7 +79,7 @@ class SpanSkipList
     i = elements.length - 1
     while i >= 0
       element = elements[i]
-      newNode = new Node(@getRandomNodeHeight(), element)
+      newNode = @createNode(@getRandomNodeHeight(), element)
       @insertNode(newNode, previous, previousDistances)
       i--
 
@@ -261,7 +261,8 @@ class SpanSkipList
       node = node.next[level]
     distance
 
-class Node
-  constructor: (@height, @element) ->
-    @next = new Array(@height)
-    @distance = new Array(@height)
+  createNode: (height, element) ->
+    height: height
+    element: element
+    next: new Array(height)
+    distance: new Array(height)
