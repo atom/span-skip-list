@@ -18,11 +18,22 @@ while count < times
   lines = _.shuffle(lines)
   count++
 
-console.profile?('span-skip-list')
+console.profile?('span-skip-list-insert')
 start = Date.now()
 for offsets in offsetsToInsert
   offsetIndex.spliceArray('rows', 0, offsets.length, offsets)
 time = Date.now() - start
-console.profileEnd?('span-skip-list')
+console.profileEnd?('span-skip-list-insert')
 
 console.log "Inserting #{lines.length * times} lines took #{time}ms (#{Math.round(lines.length * times / time)} lines/ms)"
+
+
+console.profile?('span-skip-list-query')
+start = Date.now()
+for lineNumber in [0...lines.length * times]
+  offsetIndex.totalTo(lineNumber, 'rows')
+  offsetIndex.totalTo(lineNumber, 'characters')
+time = Date.now() - start
+console.profileEnd?('span-skip-list-query')
+
+console.log "Querying #{lines.length * times} lines took #{time}ms (#{Math.round(lines.length * times / time)} lines/ms)"
