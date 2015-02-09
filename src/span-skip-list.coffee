@@ -18,9 +18,11 @@ class SpanSkipList
   constructor: (@dimensions...) ->
     @head = @createNode(@maxHeight, @buildZeroDistance())
     @tail = @createNode(@maxHeight, @buildZeroDistance())
-    for i in [0...@maxHeight]
-      @head.next[i] = @tail
-      @head.distance[i] = @buildZeroDistance()
+    index = 0
+    while index < @maxHeight
+      @head.next[index] = @tail
+      @head.distance[index] = @buildZeroDistance()
+      index++
 
   # Public: Returns the total in all dimensions for elements adding up to the
   # given target value in the given dimension.
