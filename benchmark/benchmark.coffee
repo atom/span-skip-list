@@ -12,12 +12,15 @@ times = 25
 count = 0
 time = 0
 
+offsetsToInsert = []
 while count < times
-  offsets = lines.map (line, index) -> {rows: 1, characters: line.length + 1}
-  start = Date.now()
-  offsetIndex.spliceArray('rows', 0, lines.length, offsets)
-  time += Date.now() - start
+  offsetsToInsert.push lines.map (line, index) -> {rows: 1, characters: line.length + 1}
   lines = _.shuffle(lines)
   count++
+
+start = Date.now()
+for offsets in offsetsToInsert
+  offsetIndex.spliceArray('rows', 0, offsets.length, offsets)
+time = Date.now() - start
 
 console.log "Inserting #{lines.length * times} lines took #{time}ms (#{Math.round(lines.length * times / time)} lines/ms)"
