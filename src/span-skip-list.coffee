@@ -78,8 +78,7 @@ class SpanSkipList
     # Insert new nodes and increment totals for updated pointers
     i = elements.length - 1
     while i >= 0
-      element = elements[i]
-      newNode = @createNode(@getRandomNodeHeight(), element)
+      newNode = @createNode(@getRandomNodeHeight(), elements[i])
       @insertNode(newNode, previous, previousDistances)
       i--
 
