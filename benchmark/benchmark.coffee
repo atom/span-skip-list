@@ -18,9 +18,11 @@ while count < times
   lines = _.shuffle(lines)
   count++
 
+console.profile?('span-skip-list')
 start = Date.now()
 for offsets in offsetsToInsert
   offsetIndex.spliceArray('rows', 0, offsets.length, offsets)
 time = Date.now() - start
+console.profileEnd?('span-skip-list')
 
 console.log "Inserting #{lines.length * times} lines took #{time}ms (#{Math.round(lines.length * times / time)} lines/ms)"
