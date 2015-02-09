@@ -191,9 +191,11 @@ class SpanSkipList
 
   # Private
   buildZeroDistance: ->
-    distance = {elements: 0}
-    distance[dimension] = 0 for dimension in @dimensions
-    distance
+    unless @zeroDistance?
+      @zeroDistance = elements: 0
+      @zeroDistance[dimension] = 0 for dimension in @dimensions
+
+    clone(@zeroDistance)
 
   # Private
   incrementDistance: (distance, delta) ->
