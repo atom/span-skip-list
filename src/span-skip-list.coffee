@@ -153,6 +153,7 @@ class SpanSkipList
 
     for level in [node.height...@maxHeight]
       @incrementDistance(previous[level].distance[level], node.element)
+    return
 
   # Private: Removes the given node and updates the distances of nodes to the
   # left. Returns the node following the removed node.
@@ -198,11 +199,13 @@ class SpanSkipList
   incrementDistance: (distance, delta) ->
     distance.elements += delta.elements ? 1
     distance[dimension] += delta[dimension] for dimension in @dimensions
+    return
 
   # Private
   decrementDistance: (distance, delta) ->
     distance.elements -= delta.elements ? 1
     distance[dimension] -= delta[dimension] for dimension in @dimensions
+    return
 
   # Private
   addDistances: (a, b) ->
