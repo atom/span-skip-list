@@ -30,21 +30,23 @@ class SpanSkipList
     totalDistance = @buildZeroDistance()
     node = @head
 
-    for i in [@maxHeight - 1..0]
+    index = @maxHeight - 1
+    while index >= 0
       loop
-        break if node.next[i] is @tail
+        break if node.next[index] is @tail
 
         nextDistanceInTargetDimension =
           totalDistance[dimension] +
-            node.distance[i][dimension] +
-              (node.next[i].element[dimension] ? 1)
+            node.distance[index][dimension] +
+              (node.next[index].element[dimension] ? 1)
 
         break if nextDistanceInTargetDimension > target
 
-        @incrementDistance(totalDistance, node.distance[i])
-        @incrementDistance(totalDistance, node.next[i].element)
+        @incrementDistance(totalDistance, node.distance[index])
+        @incrementDistance(totalDistance, node.next[index].element)
 
-        node = node.next[i]
+        node = node.next[index]
+      index--
 
     totalDistance
 
