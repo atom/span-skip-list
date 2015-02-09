@@ -163,12 +163,16 @@ class SpanSkipList
   # Private: Removes the given node and updates the distances of nodes to the
   # left. Returns the node following the removed node.
   removeNode: (node, previous) ->
-    for level in [0...node.height]
+    level = 0
+    while level < node.height
       previous[level].next[level] = node.next[level]
       @incrementDistance(previous[level].distance[level], node.distance[level])
+      level++
 
-    for level in [node.height...@maxHeight]
+    level = node.height
+    while level < @maxHeight
       @decrementDistance(previous[level].distance[level], node.element)
+      level++
 
     node.next[0]
 
