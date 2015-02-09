@@ -1,4 +1,9 @@
-{random, clone, isEqual} = require 'underscore'
+{random, isEqual} = require 'underscore'
+
+clone = (object) ->
+  cloned = {}
+  cloned[key] = value for key, value of object
+  cloned
 
 module.exports =
 class SpanSkipList
