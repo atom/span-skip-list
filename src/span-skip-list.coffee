@@ -144,15 +144,20 @@ class SpanSkipList
   insertNode: (node, previous, previousDistances) ->
     coveredDistance = @buildZeroDistance()
 
-    for level in [0...node.height]
+    level = 0
+    while level < node.height
       node.next[level] = previous[level].next[level]
       previous[level].next[level] = node
       node.distance[level] = @subtractDistances(previous[level].distance[level], coveredDistance)
       previous[level].distance[level] = clone(coveredDistance)
       @incrementDistance(coveredDistance, previousDistances[level])
+      level++
 
-    for level in [node.height...@maxHeight]
+    level = node.height
+    while level < @maxHeight
       @incrementDistance(previous[level].distance[level], node.element)
+      level++
+
     return
 
   # Private: Removes the given node and updates the distances of nodes to the
@@ -171,14 +176,20 @@ class SpanSkipList
   # each level when traversing to a node.
   buildPreviousArray: ->
     previous = new Array(@maxHeight)
-    previous[i] = @head for i in [0...@maxHeight]
+    index = 0
+    while index < @maxHeight
+      previous[index] = @head
+      index++
     previous
 
   # Private: The previous distances array stores the distance traversed at each
   # level when traversing to a node.
   buildPreviousDistancesArray: ->
     distances = new Array(@maxHeight)
-    distances[i] = @buildZeroDistance() for i in [0...@maxHeight]
+    index = 0
+    while index < @maxHeight
+      distances[index] = @buildZeroDistance()
+      index++
     distances
 
   # Private: Returns a height between 1 and maxHeight (inclusive). Taller heights
