@@ -18,6 +18,7 @@ while count < times
   lines = _.shuffle(lines)
   count++
 
+# Benchmark SpanSkipList::spliceArray
 console.profile?('span-skip-list-insert')
 start = Date.now()
 for offsets in offsetsToInsert
@@ -27,7 +28,7 @@ console.profileEnd?('span-skip-list-insert')
 
 console.log "Inserting #{lines.length * times} lines took #{time}ms (#{Math.round(lines.length * times / time)} lines/ms)"
 
-
+# Benchmark SpanSkipList::totalTo
 console.profile?('span-skip-list-query')
 start = Date.now()
 for lineNumber in [0...lines.length * times]
