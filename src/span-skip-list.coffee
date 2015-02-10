@@ -1,8 +1,3 @@
-clone = (object) ->
-  cloned = {}
-  cloned[key] = value for key, value of object
-  cloned
-
 module.exports =
 class SpanSkipList
   maxHeight: 8
@@ -150,7 +145,7 @@ class SpanSkipList
       node.next[level] = previous[level].next[level]
       previous[level].next[level] = node
       node.distance[level] = @subtractDistances(previous[level].distance[level], coveredDistance)
-      previous[level].distance[level] = clone(coveredDistance)
+      previous[level].distance[level] = @cloneObject(coveredDistance)
       @incrementDistance(coveredDistance, previousDistances[level])
       level++
 
@@ -211,7 +206,7 @@ class SpanSkipList
       @zeroDistance = elements: 0
       @zeroDistance[dimension] = 0 for dimension in @dimensions
 
-    clone(@zeroDistance)
+    @cloneObject(@zeroDistance)
 
   # Private
   incrementDistance: (distance, delta) ->
@@ -268,3 +263,8 @@ class SpanSkipList
     element: element
     next: new Array(height)
     distance: new Array(height)
+
+  cloneObject: (object) ->
+    cloned = {}
+    cloned[key] = value for key, value of object
+    cloned
