@@ -1,4 +1,4 @@
-{random, isEqual} = require 'underscore'
+{isEqual} = require 'underscore'
 
 clone = (object) ->
   cloned = {}
