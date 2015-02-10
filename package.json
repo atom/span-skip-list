@@ -4,6 +4,7 @@
   "description": "A data structure for calculating running totals in multiple dimensions in O(ln(n)).",
   "main": "lib/span-skip-list.js",
   "scripts": {
+    "benchmark": "./benchmark/benchmark.coffee",
     "prepublish": "grunt clean lint coffee",
     "test": "grunt test"
   },
