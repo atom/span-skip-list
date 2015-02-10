@@ -27,7 +27,7 @@
     "url": "https://github.com/atom/span-skip-list/issues"
   },
   "homepage": "http://atom.github.io/span-skip-list",
-  "dependencies": {
+  "devDependencies": {
     "underscore": "~1.5.1"
   },
   "devDependencies": {

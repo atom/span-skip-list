@@ -1,5 +1,3 @@
-{isEqual} = require 'underscore'
-
 clone = (object) ->
   cloned = {}
   cloned[key] = value for key, value of object
@@ -244,6 +242,7 @@ class SpanSkipList
   # Private: Test only. Verifies that the distances at each level match the
   # combined distances of nodes on the levels below.
   verifyDistanceInvariant: ->
+    {isEqual} = require 'underscore'
     for level in [@maxHeight - 1..1]
       node = @head
       while node isnt @tail
