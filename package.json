@@ -1,6 +1,6 @@
 {
   "name": "span-skip-list",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "A data structure for calculating running totals in multiple dimensions in O(ln(n)).",
   "main": "lib/span-skip-list.js",
   "scripts": {
