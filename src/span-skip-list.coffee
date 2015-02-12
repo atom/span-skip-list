@@ -1,5 +1,3 @@
-{random, clone, isEqual} = require 'underscore'
-
 module.exports =
 class SpanSkipList
   maxHeight: 8
@@ -11,11 +9,13 @@ class SpanSkipList
   #   A list of strings naming the dimensions to be indexed. Elements should
   #   have numeric-valued properties matching each of the indexed dimensions.
   constructor: (@dimensions...) ->
-    @head = new Node(@maxHeight, @buildZeroDistance())
-    @tail = new Node(@maxHeight, @buildZeroDistance())
-    for i in [0...@maxHeight]
-      @head.next[i] = @tail
-      @head.distance[i] = @buildZeroDistance()
+    @head = @createNode(@maxHeight, @buildZeroDistance())
+    @tail = @createNode(@maxHeight, @buildZeroDistance())
+    index = 0
+    while index < @maxHeight
+      @head.next[index] = @tail
+      @head.distance[index] = @buildZeroDistance()
+      index++
 
   # Public: Returns the total in all dimensions for elements adding up to the
   # given target value in the given dimension.
@@ -23,21 +23,23 @@ class SpanSkipList
     totalDistance = @buildZeroDistance()
     node = @head
 
-    for i in [@maxHeight - 1..0]
+    index = @maxHeight - 1
+    while index >= 0
       loop
-        break if node.next[i] is @tail
+        break if node.next[index] is @tail
 
         nextDistanceInTargetDimension =
           totalDistance[dimension] +
-            node.distance[i][dimension] +
-              (node.next[i].element[dimension] ? 1)
+            node.distance[index][dimension] +
+              (node.next[index].element[dimension] ? 1)
 
         break if nextDistanceInTargetDimension > target
 
-        @incrementDistance(totalDistance, node.distance[i])
-        @incrementDistance(totalDistance, node.next[i].element)
+        @incrementDistance(totalDistance, node.distance[index])
+        @incrementDistance(totalDistance, node.next[index].element)
 
-        node = node.next[i]
+        node = node.next[index]
+      index--
 
     totalDistance
 
@@ -73,8 +75,7 @@ class SpanSkipList
     # Insert new nodes and increment totals for updated pointers
     i = elements.length - 1
     while i >= 0
-      element = elements[i]
-      newNode = new Node(@getRandomNodeHeight(), element)
+      newNode = @createNode(@getRandomNodeHeight(), elements[i])
       @insertNode(newNode, previous, previousDistances)
       i--
 
@@ -139,25 +140,35 @@ class SpanSkipList
   insertNode: (node, previous, previousDistances) ->
     coveredDistance = @buildZeroDistance()
 
-    for level in [0...node.height]
+    level = 0
+    while level < node.height
       node.next[level] = previous[level].next[level]
       previous[level].next[level] = node
       node.distance[level] = @subtractDistances(previous[level].distance[level], coveredDistance)
-      previous[level].distance[level] = clone(coveredDistance)
+      previous[level].distance[level] = @cloneObject(coveredDistance)
       @incrementDistance(coveredDistance, previousDistances[level])
+      level++
 
-    for level in [node.height...@maxHeight]
+    level = node.height
+    while level < @maxHeight
       @incrementDistance(previous[level].distance[level], node.element)
+      level++
+
+    return
 
   # Private: Removes the given node and updates the distances of nodes to the
   # left. Returns the node following the removed node.
   removeNode: (node, previous) ->
-    for level in [0...node.height]
+    level = 0
+    while level < node.height
       previous[level].next[level] = node.next[level]
       @incrementDistance(previous[level].distance[level], node.distance[level])
+      level++
 
-    for level in [node.height...@maxHeight]
+    level = node.height
+    while level < @maxHeight
       @decrementDistance(previous[level].distance[level], node.element)
+      level++
 
     node.next[0]
 
@@ -165,14 +176,20 @@ class SpanSkipList
   # each level when traversing to a node.
   buildPreviousArray: ->
     previous = new Array(@maxHeight)
-    previous[i] = @head for i in [0...@maxHeight]
+    index = 0
+    while index < @maxHeight
+      previous[index] = @head
+      index++
     previous
 
   # Private: The previous distances array stores the distance traversed at each
   # level when traversing to a node.
   buildPreviousDistancesArray: ->
     distances = new Array(@maxHeight)
-    distances[i] = @buildZeroDistance() for i in [0...@maxHeight]
+    index = 0
+    while index < @maxHeight
+      distances[index] = @buildZeroDistance()
+      index++
     distances
 
   # Private: Returns a height between 1 and maxHeight (inclusive). Taller heights
@@ -185,19 +202,23 @@ class SpanSkipList
 
   # Private
   buildZeroDistance: ->
-    distance = {elements: 0}
-    distance[dimension] = 0 for dimension in @dimensions
-    distance
+    unless @zeroDistance?
+      @zeroDistance = elements: 0
+      @zeroDistance[dimension] = 0 for dimension in @dimensions
+
+    @cloneObject(@zeroDistance)
 
   # Private
   incrementDistance: (distance, delta) ->
     distance.elements += delta.elements ? 1
     distance[dimension] += delta[dimension] for dimension in @dimensions
+    return
 
   # Private
   decrementDistance: (distance, delta) ->
     distance.elements -= delta.elements ? 1
     distance[dimension] -= delta[dimension] for dimension in @dimensions
+    return
 
   # Private
   addDistances: (a, b) ->
@@ -216,6 +237,7 @@ class SpanSkipList
   # Private: Test only. Verifies that the distances at each level match the
   # combined distances of nodes on the levels below.
   verifyDistanceInvariant: ->
+    {isEqual} = require 'underscore'
     for level in [@maxHeight - 1..1]
       node = @head
       while node isnt @tail
@@ -236,7 +258,13 @@ class SpanSkipList
       node = node.next[level]
     distance
 
-class Node
-  constructor: (@height, @element) ->
-    @next = new Array(@height)
-    @distance = new Array(@height)
+  createNode: (height, element) ->
+    height: height
+    element: element
+    next: new Array(height)
+    distance: new Array(height)
+
+  cloneObject: (object) ->
+    cloned = {}
+    cloned[key] = value for key, value of object
+    cloned
