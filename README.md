@@ -1,4 +1,5 @@
-# Span Skip-List [![Build Status](https://travis-ci.org/atom/span-skip-list.png)](https://travis-ci.org/atom/span-skip-list)
+##### Atom and all repositories under Atom will be archived on December 15, 2022. Learn more in our [official announcement](https://github.blog/2022-06-08-sunsetting-atom/)
+ # Span Skip-List [![Build Status](https://travis-ci.org/atom/span-skip-list.png)](https://travis-ci.org/atom/span-skip-list)
 
 This data structure stores arbitrary mappings between various dimensions and
 allows running totals to be calculated in `O(ln(n))`, where n is the number of
